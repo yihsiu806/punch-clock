@@ -2,55 +2,53 @@
   <v-app>
     <v-app-bar
       app
-      color="primary"
+      color="lime lighten-1"
       dark
     >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-
       <v-btn
         href="https://github.com/vuetifyjs/vuetify/releases/latest"
         target="_blank"
         text
       >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
+        <v-icon x-large>mdi-clock-outline</v-icon>
+        <span class="ml-2">Punch Clock</span>
       </v-btn>
     </v-app-bar>
 
     <v-main>
-      <HelloWorld/>
+      <v-container>
+        <v-row>
+          <v-col cols="3">
+            <Tasks/>
+          </v-col>
+          <v-col cols="9">
+            <v-row>
+              <Stopwatch/>
+            </v-row>
+            <v-row>
+              <RecordBoard/>
+            </v-row>
+          </v-col>
+        </v-row>
+      </v-container>
+      
+      
     </v-main>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
+import Tasks from './components/Tasks';
+import Stopwatch from './components/Stopwatch';
+import RecordBoard from './components/RecordBoard';
 
 export default {
   name: 'App',
 
   components: {
-    HelloWorld,
+    Tasks,
+    Stopwatch,
+    RecordBoard,
   },
 
   data: () => ({
