@@ -5,25 +5,30 @@
       color="lime lighten-1"
       dark
     >
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
+      <v-btn @click="reload"
+        href="#"
         text
       >
         <v-icon x-large>mdi-clock-outline</v-icon>
-        <span class="ml-2">Punch Clock</span>
+        <span class="ml-3" style="text-transform: none; font-size: 24px;">Punch Clock</span>
       </v-btn>
     </v-app-bar>
 
     <v-main>
       <v-container>
         <v-row>
-          <v-col cols="3">
+          <v-col cols="12" sm="3">
             <Tasks/>
           </v-col>
-          <v-col cols="9">
+          <v-col cols="12" sm="9" md="9">
             <v-row>
               <Stopwatch/>
+            </v-row>
+            <v-row style="font-size: 18px; font-weight: bold;">
+              <v-spacer></v-spacer>
+              <v-col>
+                Total: {{ totalSpendTimeString }}
+              </v-col>
             </v-row>
             <v-row>
               <RecordBoard/>
@@ -41,6 +46,7 @@
 import Tasks from './components/Tasks';
 import Stopwatch from './components/Stopwatch';
 import RecordBoard from './components/RecordBoard';
+import parseDate from './utils/parseDate'
 
 export default {
   name: 'App',
@@ -52,7 +58,26 @@ export default {
   },
 
   data: () => ({
-    //
+    totalSpendTime: 0,
+    totalSpendTimeString: '',
   }),
+
+  methods: {
+    reload() {
+      location.reload()
+      return false
+    },
+  },
+
+  mounted() {
+    this.$root.$on("recordChange", (val) => {
+      this.totalSpendTime = val
+      this.totalSpendTimeString = parseDate(val)
+    })
+  },
 };
 </script>
+
+<style scoped>
+
+</style>

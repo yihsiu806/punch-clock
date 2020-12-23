@@ -1,80 +1,127 @@
 <template>
   <v-container>
-    <v-row class="text-center">
-      <v-col cols="12">
-        <h2 class="headline font-weight-bold">Tasks</h2>
-      </v-col>
-      <v-col cols="12">
-        <v-btn color="lime lighten-1" elevation="1" block large>
-          <v-icon color="white" large> mdi-plus </v-icon>
-        </v-btn>
-      </v-col>
-      
-
-      
-
-      
-    </v-row>
+    <v-dialog v-model="dialog" max-width="250">
+      <v-card>
+        <v-card-title class="headline"> Delete Record? </v-card-title>
+        <v-card-text
+          >Are you sure deleting record {{ deleteTarget }}</v-card-text
+        >
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="gray darken-1" text @click="dialog = false">
+            Cancel
+          </v-btn>
+          <v-btn color="green darken-1" text @click="deleteRecord">
+            Yes
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-simple-table fixed-header>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Start Time</th>
+          <th>End Time</th>
+          <th>Duration</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in records" :key="item.key">
+          <td><v-icon>mdi-drag</v-icon></td>
+          <td>{{ item.startTimeString }}</td>
+          <td>{{ item.endTimeString }}</td>
+          <td>{{ item.durationString }}</td>
+          <td>
+            <v-btn
+              elevation="2"
+              icon
+              rounded
+              x-small
+              @click="setDeleteTarget"
+            >
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </td>
+        </tr>
+      </tbody>
+    </v-simple-table>
+    <div class="wrapper"></div>
   </v-container>
 </template>
 
 <script>
+import parseDate from "../utils/parseDate";
+
 export default {
   name: "HelloWorld",
-
   data: () => ({
-    ecosystem: [
-      {
-        text: "vuetify-loader",
-        href: "https://github.com/vuetifyjs/vuetify-loader",
-      },
-      {
-        text: "github",
-        href: "https://github.com/vuetifyjs/vuetify",
-      },
-      {
-        text: "awesome-vuetify",
-        href: "https://github.com/vuetifyjs/awesome-vuetify",
-      },
-    ],
-    importantLinks: [
-      {
-        text: "Documentation",
-        href: "https://vuetifyjs.com",
-      },
-      {
-        text: "Chat",
-        href: "https://community.vuetifyjs.com",
-      },
-      {
-        text: "Made with Vuetify",
-        href: "https://madewithvuejs.com/vuetify",
-      },
-      {
-        text: "Twitter",
-        href: "https://twitter.com/vuetifyjs",
-      },
-      {
-        text: "Articles",
-        href: "https://medium.com/vuetify",
-      },
-    ],
-    whatsNext: [
-      {
-        text: "Explore components",
-        href: "https://vuetifyjs.com/components/api-explorer",
-      },
-      {
-        text: "Select a layout",
-        href: "https://vuetifyjs.com/getting-started/pre-made-layouts",
-      },
-      {
-        text: "Frequently Asked Questions",
-        href:
-          "https://vuetifyjs.com/getting-started/frequently-asked-questions",
-      },
-    ],
+    startTime: 0,
+    endTime: 0,
+    duration: 0,
+    records: [],
+    deleteTarget: 0,
+    dialog: false,
   }),
+  watch: {
+    records(val) {
+      let totalSpendTime = val.reduce((arr, cur) => {
+        return arr + cur.duration;
+      }, 0);
+      this.$root.$emit("recordChange", totalSpendTime);
+    },
+  },
+  methods: {
+    deleteRecord() {
+      this.dialog = false
+      this.records.splice(this.currentRecord, 1)
+    },
+    setDeleteTarget(event) {
+      this.dialog = true
+      const target = event.target.closest('tr')
+      const tds = Array.from(target.querySelectorAll('td'))
+      const start = tds[1].textContent
+      const end = tds[2].textContent
+      const duration = tds[3].textContent
+      this.deleteTarget = `which start from ${start} to ${end} (${duration})`
+      this.currentRecord = index(target)
+    },
+  },
+  mounted() {
+    this.$root.$on("watchStart", () => {
+      this.startTime = new Date();
+    });
+    this.$root.$on("watchStop", () => {
+      this.endTime = new Date();
+      this.duration = Math.round((this.endTime - this.startTime) / 1000);
+      this.records.unshift({
+        startTime: this.startTime,
+        endTime: this.endTime,
+        startTimeString:
+          this.startTime.toLocaleDateString() +
+          " " +
+          this.startTime.toTimeString().replace(/ .*$/, ""),
+        endTimeString:
+          this.endTime.toLocaleDateString() +
+          " " +
+          this.endTime.toTimeString().replace(/ .*$/, ""),
+        duration: this.duration,
+        durationString: parseDate(this.duration),
+        key: new Date().getTime(),
+      });
+    });
+  },
 };
+function index(el) {
+  let i = -1
+  while(el) {
+    el = el.previousElementSibling
+    i++
+  }
+  return i
+}
 </script>
  
+<style scoped>
+</style>
