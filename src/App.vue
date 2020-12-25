@@ -31,7 +31,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <RecordBoard />
+              <RecordBoard :defaultRecord="Object.assign([], tasks[0].records)" :defaultTaskName="tasks[0].name" />
             </v-row>
           </v-col>
         </v-row>
@@ -51,7 +51,7 @@ import * as Utils from './utils/Utils'
 const defaultTasks = [
   {
     order: 0,
-    name: 'Records',
+    name: 'Task 1',
     uuid: Utils.generateUUID(),
     records: []
   }
@@ -67,10 +67,8 @@ export default {
   },
 
   data: () => ({
-    totalSpendTime: 0,
-    totalSpendTimeString: '',
     tasks: defaultTasks,
-    records: [],
+    totalSpendTimeString: '',
   }),
 
   methods: {
@@ -81,16 +79,24 @@ export default {
   },
 
   watch: {
-    
+    tasks(val) {
+      localStorage.setItem('yihsiu-punch-clock', JSON.stringify(val))
+    }
+  },
+
+  beforeMount() {
+    if (localStorage.getItem('yihsiu-punch-clock')) {
+      this.tasks = JSON.parse(localStorage.getItem('yihsiu-punch-clock'))
+    }
   },
 
   mounted() {
     this.$root.$on("recordChange", (val) => {
-      this.totalSpendTime = val
-      this.totalSpendTimeString = Utils.parseDate(val)
-    })
-    this.$root.$on('test', () => {
-      
+      let totalSpendTime = val.reduce((arr, cur) => {
+        return arr + cur.duration;
+      }, 0);
+      this.totalSpendTimeString = Utils.elapseTimeToDayHourMMSS(totalSpendTime)
+      localStorage.setItem('yihsiu-punch-clock', JSON.stringify(this.tasks))
     })
   },
 };

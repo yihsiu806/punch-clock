@@ -4,66 +4,7 @@
       <v-col cols="12" sm="8" md="8" >
         <div style="position: relative; width: 250px; height: 250px; display: inline-block;">
           <div class="wave" v-bind:class="{waving: running}">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
+            <div v-for="n in 60" :key="n"></div>
           </div>
           <div class="day-hour">
             <span v-if="day">{{ day }}</span>
@@ -78,10 +19,10 @@
       <v-col cols="12" sm="4" align-self="center">
         <v-row justify="start">
           <v-col cols="12">
-            <v-btn v-if="!running" color="lime darken-4" elevation="2" rounded small dark @click="start" large>
+            <v-btn v-if="!running" color="green" elevation="2" rounded small dark @click="start" large>
               start
             </v-btn>
-            <v-btn v-if="running" color="lime darken-4" elevation="2" rounded small dark @click="stop" large>
+            <v-btn v-if="running" color="red" elevation="2" rounded small dark @click="stop" large>
               stop
             </v-btn>
           </v-col>
@@ -146,7 +87,7 @@ export default {
         return null
       }
     }
-  }
+  },
 
 };
 </script>

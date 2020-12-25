@@ -4,7 +4,7 @@
       <v-card>
         <v-card-title class="headline"> Delete Record? </v-card-title>
         <v-card-text
-          >Are you sure deleting record {{ deleteTarget }}</v-card-text
+          >Are you sure deleting record {{ recordString }}</v-card-text
         >
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -17,6 +17,42 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <div class="d-flex flex-row align-center">
+      <v-menu
+      v-model="taskAction"
+      :disabled="disabled"
+      :absolute="absolute"
+      :open-on-hover="openOnHover"
+      :close-on-click="closeOnClick"
+      :close-on-content-click="closeOnContentClick"
+      :offset-x="offsetX"
+      :offset-y="offsetY"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            icon
+            color="lime darken-2"
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-icon>mdi-cog</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item>
+            <v-list-item-title>
+              Rename
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-title>
+              Delete
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+      <h4 class="lime--text ml-5">{{ taskName }}</h4>
+    </div>
     <v-simple-table fixed-header>
       <thead>
         <tr>
@@ -28,20 +64,22 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, index) in records" :key="item.key" :index="index" @dragstart="dragstartHandler">
+        <tr v-for="(record, index) in records" :key="index" :index="index" @dragstart="dragstartHandler" @dragend="dragendHandler">
           <td>
-            <v-icon class="move-icon" @mouseenter="enterMoveIcon" @mouseleave="leaveMoveIcon">mdi-drag</v-icon>
+            <v-icon class="move-icon" @mouseenter="enterMoveIcon" @mouseleave="leaveMoveIcon" color="grey">
+              mdi-dots-vertical
+            </v-icon>
           </td>
-          <td>{{ item.startTimeString }}</td>
-          <td>{{ item.endTimeString }}</td>
-          <td>{{ item.durationString }}</td>
+          <td>{{ record.startTimeString }}</td>
+          <td>{{ record.endTimeString }}</td>
+          <td>{{ record.durationString }}</td>
           <td>
             <v-btn
-              elevation="2"
               icon
               rounded
               x-small
-              @click="setDeleteTarget"
+              color="grey"
+              @click="confirmDelete"
             >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
@@ -57,40 +95,54 @@
 import * as Utils from "../utils/Utils";
 
 export default {
-  name: "HelloWorld",
+  name: "RecordBoard",
+
+  props: {
+    defaultRecord: Array,
+    defaultTaskName: String,
+  },
+
   data: () => ({
+    taskName: '',
+    recordString: 0,
+    dialog: false,
+    records: [],
     startTime: 0,
     endTime: 0,
     duration: 0,
-    records: [],
-    deleteTarget: 0,
-    dialog: false,
+    currentRecord: 0,
+
+    disabled: false,
+      absolute: false,
+      openOnHover: false,
+      value: false,
+      closeOnClick: true,
+      closeOnContentClick: true,
+      offsetX: false,
+      offsetY: true,
+      taskAction: false,
   }),
 
   watch: {
     records(val) {
-      let totalSpendTime = val.reduce((arr, cur) => {
-        return arr + cur.duration;
-      }, 0);
-      this.$root.$emit("recordChange", totalSpendTime);
-      this.$root.$emit("updateRecord", val)
+      this.$root.$emit("recordChange", val)
     },
   },
 
   methods: {
-    deleteRecord() {
-      this.dialog = false
-      this.records.splice(this.currentRecord, 1)
-    },
-    setDeleteTarget(event) {
-      this.dialog = true
-      const target = event.target.closest('tr')
+    confirmDelete(evt) {
+      const target = evt.target.closest('tr')
       const tds = Array.from(target.querySelectorAll('td'))
       const start = tds[1].textContent
       const end = tds[2].textContent
       const duration = tds[3].textContent
-      this.deleteTarget = `which start from ${start} to ${end} (${duration})`
-      this.currentRecord = index(target)
+      this.dialog = true
+      this.recordString = `which start from ${start} to ${end} (${duration})`
+      this.currentRecord = target.getAttribute('index')
+    },
+    deleteRecord() {
+      this.dialog = false
+      this.records.splice(this.currentRecord, 1)
     },
     enterMoveIcon(evt) {
       evt.target.closest('tr').setAttribute('draggable', 'true')
@@ -101,14 +153,21 @@ export default {
     dragstartHandler(evt) {
       const index = evt.target.getAttribute('index')
       evt.dataTransfer.setData('application/json', JSON.stringify(this.records[index]))
-    }
+      evt.dataTransfer.effectAllowed = 'move';
+    },
+    dragendHandler(evt) {
+      if (evt.dataTransfer.dropEffect == 'move') {
+        const index = evt.target.getAttribute('index')
+        this.records.splice(index, 1)
+      }
+    },
   },
 
   mounted() {
-    this.$root.$on("watchStart", () => {
+    this.$root.$on('watchStart', () => {
       this.startTime = new Date();
     });
-    this.$root.$on("watchStop", () => {
+    this.$root.$on('watchStop', () => {
       this.endTime = new Date();
       this.duration = Math.round((this.endTime - this.startTime) / 1000);
       this.records.unshift({
@@ -116,30 +175,24 @@ export default {
         endTime: this.endTime,
         startTimeString:
           this.startTime.toLocaleDateString() +
-          " " +
-          this.startTime.toTimeString().replace(/ .*$/, ""),
+          ' ' +
+          this.startTime.toTimeString().replace(/ .*$/, ''),
         endTimeString:
           this.endTime.toLocaleDateString() +
-          " " +
-          this.endTime.toTimeString().replace(/ .*$/, ""),
+          ' ' +
+          this.endTime.toTimeString().replace(/ .*$/, ''),
         duration: this.duration,
-        durationString: Utils.parseDate(this.duration),
-        key: new Date().getTime(),
+        durationString: Utils.elapseTimeToDayHourMMSS(this.duration),
       });
     });
-    this.$root.$on('switchTask', val => {
-      this.records = val
+    this.$root.$on('recordBoardNeedChange', val => {
+      this.taskName = val.name
+      this.records = val.records
     })
+    this.records = this.defaultRecord
+    this.taskName = this.defaultTaskName
   },
 };
-function index(el) {
-  let i = -1
-  while(el) {
-    el = el.previousElementSibling
-    i++
-  }
-  return i
-}
 </script>
  
 <style scoped>
@@ -147,6 +200,5 @@ function index(el) {
   color: black;
   cursor: grab;
   box-shadow: 0 0 5px 0 white;
-  /* background-color: rgba(0,0,0,0); */
 }
 </style>

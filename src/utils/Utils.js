@@ -1,4 +1,4 @@
-export const parseDate = (elapsed) => {
+export const elapseTimeToDayHourMMSS = (elapsed) => {
   let seconds = ("00" + (elapsed % 60)).slice(-2);
   let minutes = ("00" + (Math.floor(elapsed / 60) % 60)).slice(-2);
   let hours = Math.floor(elapsed / 3600) % 24;
@@ -52,4 +52,17 @@ export const generateUUID = () => {
   }
 
   return `${low()}-${mid()}-${high()}-${clock()}-${node()}`
+}
+
+export function index(el) {
+  let i = -1
+  while(el) {
+    el = el.previousElementSibling
+    i++
+  }
+  return i
+}
+
+export function sortRecordByStartTime(records) {
+  records.sort((a, b) => b.startTime - a.startTime)
 }

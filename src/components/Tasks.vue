@@ -1,14 +1,14 @@
 <template>
   <v-container>
-    <v-dialog v-model="dialog" max-width="250">
+    <v-dialog v-model="dialog" max-width="250" @keydown="handleEnter">
       <v-card>
         <v-card-title>
           <span class="headline">New Task</span>
         </v-card-title>
         <v-card-text>
           <v-container>
-            <v-form ref="form" v-model="valid">
-              <v-text-field :rules="taskNameRules" v-model="taskName" label="Task name" autofocus></v-text-field>
+            <v-form ref="form" v-model="taskNameIsValid">
+              <v-text-field v-model="taskName" :rules="taskNameRules"  label="Task Name" autofocus></v-text-field>
             </v-form>
           </v-container>
         </v-card-text>
@@ -32,15 +32,14 @@
           elevation="1"
           block
           small
-          @click="createNewTask"
+          @click="addNewTask"
         >
           <v-icon color="white"> mdi-plus </v-icon>
         </v-btn>
       </v-col>
     </v-row>
-    <v-tabs v-model="currentTab" center-active vertical color="lime darken-1">
-      <v-tab v-for="(task, index) in tasks" :key="task.uuid" :index="index" class="task-tab" @click="activateTask" @dragover="dragoverHandler" @drop="dropHandler">
-        <v-icon v-if="task.order == 0" left> mdi-clipboard-list </v-icon>
+    <v-tabs v-model="currentTab" vertical color="lime darken-1">
+      <v-tab v-for="(task, index) in tasks" :key="task.uuid" :index="index" class="task-tab" @click="activateTask" @dragover="dragoverHandler" @drop="dropHandler" @dragenter="dragenterHandler" @dragleave="dragleaveHandler">
         {{ task.name }}
       </v-tab>
     </v-tabs>
@@ -53,87 +52,110 @@ import * as Utils from '../utils/Utils'
 export default {
   name: "Tasks",
 
-  data: () => ({
-    dialog: false,
-    valid: true,
-    taskName: '',
-    taskNameRules: [
-      v => v.length > 0,
-    ],
-    currentTaskIndex: 0,
-    targetTaskIndex: 0,
-    records: [],
-    running: false,
-    newTaskCreated: false,
-    uuid: null,
-    currentTab: null,
-  }),
-
   props: {
     tasks: Array,
   },
 
+  data: () => ({
+    dialog: false,
+    taskNameIsValid: true,
+    taskName: '',
+    taskNameRules: [
+      v => v.length > 0,
+    ],
+    currentTab: null,
+    currentTaskIndex: 0,
+  }),
+
   methods: {
-    createNewTask() {
-      if (!this.valid) {
+    addNewTask() {
+      if (!this.taskNameIsValid) {
         this.$refs.form.resetValidation()
       }
       this.dialog = true
     },
+
     saveNewTask() {
       this.$refs.form.validate()
-      if (!this.valid) {
+      if (!this.taskNameIsValid) {
         return
       }
       this.tasks.push({
-        uuid: Utils.generateUUID(),
+        order: this.tasks.length,
         name: this.taskName,
+        uuid: Utils.generateUUID(),
         records: [],
       })
-      this.newTaskCreated = true
       this.taskName = ''
       this.$refs.form.resetValidation()
       this.dialog = false
       this.currentTab = this.tasks.length - 1
-      this.targetTaskIndex = this.tasks.length - 1
+      this.currentTaskIndex = this.tasks.length - 1
     },
+    
     activateTask(evt) {
-      this.targetTaskIndex = evt.target.getAttribute('index')
+      this.currentTaskIndex = evt.target.getAttribute('index')
     },
+
     dragoverHandler(evt) {
       evt.preventDefault()
+      if (evt.target.getAttribute('index') == this.currentTaskIndex) {
+        evt.dataTransfer.dropEffect = 'none'
+      } else {
+        evt.dataTransfer.dropEffect = "move"
+      }
     },
+
     dropHandler(evt) {
       evt.preventDefault()
-      const data = evt.dataTransfer.getData('application/json')
-      console.log(data)
+      evt.target.classList.remove('drag-over')
+      const data = JSON.parse(evt.dataTransfer.getData('application/json'))
+      const index = evt.target.getAttribute('index')
+      this.tasks[index].records.push(data)
+      Utils.sortRecordByStartTime(this.tasks[index].records)
+    },
+
+    dragenterHandler(evt) {
+      if (evt.target.getAttribute('index') == this.currentTaskIndex) {
+        return
+      }
+      evt.target.classList.add('drag-over')
+    },
+
+    dragleaveHandler(evt) {
+      evt.target.classList.remove('drag-over')
+    },
+
+    handleEnter(evt) {
+      if (evt.code == 'Enter') {
+        evt.stopPropagation()
+        evt.preventDefault()
+      }
     }
   },
 
   watch: {
-    targetTaskIndex() {
-      this.currentTaskIndex = this.targetTaskIndex
-      this.$root.$emit('switchTask', Object.assign([], this.tasks[this.targetTaskIndex].records))
+    currentTaskIndex(val) {
+      this.$root.$emit('recordBoardNeedChange', {
+        name: this.tasks[val].name,
+        records: Object.assign([], this.tasks[val].records),
+      })
     },
-    uuid(val) {
-      console.log(val)
-    }
   },
 
   mounted() {
-    this.$root.$on('updateRecord', val => {
+    this.$root.$on('recordChange', val => {
       this.tasks[this.currentTaskIndex].records = [...val]
     })
   },
 
-  updated() {
-    // this.$nextTick(() => {
-    //   if (!this.newTaskCreated) {
-    //     return
-    //   }
-    //   this.$el.querySelectorAll('.task-tab:last-child')[0].dispatchEvent(new Event('click'))
-    //   this.newTaskCreated = false
-    // })
-  }
 };
 </script>
+
+<style scoped>
+  .drag-over {
+    background-color: silver;
+    box-shadow: 0 5px 15px 0 rgba(0,0,0,0.08);
+    border: 1px solid silver;
+  }
+</style>
