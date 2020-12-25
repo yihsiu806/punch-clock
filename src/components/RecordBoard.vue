@@ -29,7 +29,9 @@
       </thead>
       <tbody>
         <tr v-for="item in records" :key="item.key">
-          <td><v-icon>mdi-drag</v-icon></td>
+          <td>
+            <v-icon class="move-icon" @mouseenter="enterMoveIcon" @mouseleave="leaveMoveIcon">mdi-drag</v-icon>
+          </td>
           <td>{{ item.startTimeString }}</td>
           <td>{{ item.endTimeString }}</td>
           <td>{{ item.durationString }}</td>
@@ -52,7 +54,7 @@
 </template>
 
 <script>
-import parseDate from "../utils/parseDate";
+import * as Utils from "../utils/Utils";
 
 export default {
   name: "HelloWorld",
@@ -64,14 +66,17 @@ export default {
     deleteTarget: 0,
     dialog: false,
   }),
+
   watch: {
     records(val) {
       let totalSpendTime = val.reduce((arr, cur) => {
         return arr + cur.duration;
       }, 0);
       this.$root.$emit("recordChange", totalSpendTime);
+      this.$root.$emit("updateRecord", val)
     },
   },
+
   methods: {
     deleteRecord() {
       this.dialog = false
@@ -87,7 +92,14 @@ export default {
       this.deleteTarget = `which start from ${start} to ${end} (${duration})`
       this.currentRecord = index(target)
     },
+    enterMoveIcon(evt) {
+      evt.target.closest('tr').setAttribute('draggable', 'true')
+    },
+    leaveMoveIcon(evt) {
+      evt.target.closest('tr').removeAttribute('draggable')
+    }
   },
+
   mounted() {
     this.$root.$on("watchStart", () => {
       this.startTime = new Date();
@@ -107,10 +119,13 @@ export default {
           " " +
           this.endTime.toTimeString().replace(/ .*$/, ""),
         duration: this.duration,
-        durationString: parseDate(this.duration),
+        durationString: Utils.parseDate(this.duration),
         key: new Date().getTime(),
       });
     });
+    this.$root.$on('switchTask', val => {
+      this.records = val
+    })
   },
 };
 function index(el) {
@@ -124,4 +139,7 @@ function index(el) {
 </script>
  
 <style scoped>
+.move-icon:hover {
+  color: black;
+}
 </style>

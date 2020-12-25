@@ -93,11 +93,11 @@
 
 <script>
 export default {
-  name: "HelloWorld",
+  name: "Stopwatch",
 
   data() {
     return {
-      counter: 97300,
+      counter: 0,
       running: false,
       intervalID: null,
     }

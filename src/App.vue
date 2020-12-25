@@ -18,7 +18,7 @@
       <v-container>
         <v-row>
           <v-col cols="12" sm="3">
-            <Tasks/>
+            <Tasks :tasks="tasks"/>
           </v-col>
           <v-col cols="12" sm="9" md="9">
             <v-row>
@@ -31,7 +31,7 @@
               </v-col>
             </v-row>
             <v-row>
-              <RecordBoard/>
+              <RecordBoard />
             </v-row>
           </v-col>
         </v-row>
@@ -46,7 +46,16 @@
 import Tasks from './components/Tasks';
 import Stopwatch from './components/Stopwatch';
 import RecordBoard from './components/RecordBoard';
-import parseDate from './utils/parseDate'
+import * as Utils from './utils/Utils'
+
+const defaultTasks = [
+  {
+    order: 0,
+    name: 'Records',
+    uuid: Utils.generateUUID(),
+    records: []
+  }
+]
 
 export default {
   name: 'App',
@@ -60,6 +69,8 @@ export default {
   data: () => ({
     totalSpendTime: 0,
     totalSpendTimeString: '',
+    tasks: defaultTasks,
+    records: [],
   }),
 
   methods: {
@@ -69,10 +80,17 @@ export default {
     },
   },
 
+  watch: {
+    
+  },
+
   mounted() {
     this.$root.$on("recordChange", (val) => {
       this.totalSpendTime = val
-      this.totalSpendTimeString = parseDate(val)
+      this.totalSpendTimeString = Utils.parseDate(val)
+    })
+    this.$root.$on('test', () => {
+      
     })
   },
 };

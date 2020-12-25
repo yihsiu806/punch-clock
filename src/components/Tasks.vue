@@ -1,30 +1,114 @@
 <template>
   <v-container>
+    <v-dialog v-model="dialog" max-width="250">
+      <v-card>
+        <v-card-title>
+          <span class="headline">New Task</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-form ref="form" v-model="valid">
+              <v-text-field :rules="taskNameRules" v-model="taskName" label="Task name" autofocus></v-text-field>
+            </v-form>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="gray darken-1" text @click="dialog = false">
+            Cancle
+          </v-btn>
+          <v-btn color="green darken-1" text @click="saveNewTask">
+            Save
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-row class="text-center">
       <v-col cols="12">
         <h2 class="headline font-weight-bold">Tasks</h2>
       </v-col>
       <v-col cols="12">
-        <v-btn color="lime lighten-1" elevation="1" block small>
+        <v-btn
+          color="lime lighten-1"
+          elevation="1"
+          block
+          small
+          @click="createNewTask"
+        >
           <v-icon color="white"> mdi-plus </v-icon>
         </v-btn>
       </v-col>
     </v-row>
-    <v-tabs vertical color="lime darken-1">
-      <v-tab>
-        <v-icon left> mdi-clipboard-list </v-icon>
-        Records
+    <v-tabs center-active vertical color="lime darken-1">
+      <v-tab v-for="(task, index) in tasks" :key="task.uuid" :index="index" class="task-tab" @click="activateTask">
+        <v-icon v-if="task.order == 0" left> mdi-clipboard-list </v-icon>
+        {{ task.name }}
       </v-tab>
     </v-tabs>
   </v-container>
 </template>
 
 <script>
+import * as Utils from '../utils/Utils'
+
 export default {
-  name: "HelloWorld",
+  name: "Tasks",
 
   data: () => ({
-    
+    dialog: false,
+    valid: true,
+    taskName: '',
+    taskNameRules: [
+      v => v.length > 0,
+    ],
+    currentTaskIndex: 0,
+    targetTaskIndex: 0,
+    records: [],
+    running: false,
   }),
+
+  props: {
+    tasks: Array,
+  },
+
+  methods: {
+    createNewTask() {
+      if (!this.valid) {
+        this.$refs.form.resetValidation()
+      }
+      this.dialog = true
+    },
+    saveNewTask() {
+      this.$refs.form.validate()
+      if (!this.valid) {
+        return
+      }
+      this.tasks.push({
+        uuid: Utils.generateUUID(),
+        name: this.taskName,
+        records: [],
+        stopWatch: null,
+      })
+      this.taskName = ''
+      this.$refs.form.resetValidation()
+      this.dialog = false
+    },
+    activateTask(evt) {
+      this.targetTaskIndex = evt.target.getAttribute('index')
+      
+    },
+  },
+
+  watch: {
+    targetTaskIndex() {
+      this.currentTaskIndex = this.targetTaskIndex
+      this.$root.$emit('switchTask', Object.assign([], this.tasks[this.targetTaskIndex].records))
+    }
+  },
+
+  mounted() {
+    this.$root.$on('updateRecord', val => {
+      this.tasks[this.currentTaskIndex].records = [...val]
+    })
+  },
 };
 </script>
