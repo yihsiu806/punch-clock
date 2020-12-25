@@ -28,7 +28,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in records" :key="item.key">
+        <tr v-for="(item, index) in records" :key="item.key" :index="index" @dragstart="dragstartHandler">
           <td>
             <v-icon class="move-icon" @mouseenter="enterMoveIcon" @mouseleave="leaveMoveIcon">mdi-drag</v-icon>
           </td>
@@ -97,6 +97,10 @@ export default {
     },
     leaveMoveIcon(evt) {
       evt.target.closest('tr').removeAttribute('draggable')
+    },
+    dragstartHandler(evt) {
+      const index = evt.target.getAttribute('index')
+      evt.dataTransfer.setData('application/json', JSON.stringify(this.records[index]))
     }
   },
 
@@ -141,5 +145,8 @@ function index(el) {
 <style scoped>
 .move-icon:hover {
   color: black;
+  cursor: grab;
+  box-shadow: 0 0 5px 0 white;
+  /* background-color: rgba(0,0,0,0); */
 }
 </style>

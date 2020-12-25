@@ -38,7 +38,7 @@
         </v-btn>
       </v-col>
     </v-row>
-    <v-tabs center-active vertical color="lime darken-1">
+    <v-tabs v-model="currentTab" center-active vertical color="lime darken-1">
       <v-tab v-for="(task, index) in tasks" :key="task.uuid" :index="index" class="task-tab" @click="activateTask">
         <v-icon v-if="task.order == 0" left> mdi-clipboard-list </v-icon>
         {{ task.name }}
@@ -64,6 +64,9 @@ export default {
     targetTaskIndex: 0,
     records: [],
     running: false,
+    newTaskCreated: false,
+    uuid: null,
+    currentTab: null,
   }),
 
   props: {
@@ -88,13 +91,15 @@ export default {
         records: [],
         stopWatch: null,
       })
+      this.newTaskCreated = true
       this.taskName = ''
       this.$refs.form.resetValidation()
       this.dialog = false
+      this.currentTab = this.tasks.length - 1
+      this.targetTaskIndex = this.tasks.length - 1
     },
     activateTask(evt) {
       this.targetTaskIndex = evt.target.getAttribute('index')
-      
     },
   },
 
@@ -102,6 +107,9 @@ export default {
     targetTaskIndex() {
       this.currentTaskIndex = this.targetTaskIndex
       this.$root.$emit('switchTask', Object.assign([], this.tasks[this.targetTaskIndex].records))
+    },
+    uuid(val) {
+      console.log(val)
     }
   },
 
@@ -110,5 +118,15 @@ export default {
       this.tasks[this.currentTaskIndex].records = [...val]
     })
   },
+
+  updated() {
+    // this.$nextTick(() => {
+    //   if (!this.newTaskCreated) {
+    //     return
+    //   }
+    //   this.$el.querySelectorAll('.task-tab:last-child')[0].dispatchEvent(new Event('click'))
+    //   this.newTaskCreated = false
+    // })
+  }
 };
 </script>
