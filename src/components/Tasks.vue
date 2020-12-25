@@ -39,7 +39,7 @@
       </v-col>
     </v-row>
     <v-tabs v-model="currentTab" center-active vertical color="lime darken-1">
-      <v-tab v-for="(task, index) in tasks" :key="task.uuid" :index="index" class="task-tab" @click="activateTask">
+      <v-tab v-for="(task, index) in tasks" :key="task.uuid" :index="index" class="task-tab" @click="activateTask" @dragover="dragoverHandler" @drop="dropHandler">
         <v-icon v-if="task.order == 0" left> mdi-clipboard-list </v-icon>
         {{ task.name }}
       </v-tab>
@@ -89,7 +89,6 @@ export default {
         uuid: Utils.generateUUID(),
         name: this.taskName,
         records: [],
-        stopWatch: null,
       })
       this.newTaskCreated = true
       this.taskName = ''
@@ -101,6 +100,14 @@ export default {
     activateTask(evt) {
       this.targetTaskIndex = evt.target.getAttribute('index')
     },
+    dragoverHandler(evt) {
+      evt.preventDefault()
+    },
+    dropHandler(evt) {
+      evt.preventDefault()
+      const data = evt.dataTransfer.getData('application/json')
+      console.log(data)
+    }
   },
 
   watch: {
