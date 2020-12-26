@@ -66,3 +66,7 @@ export function index(el) {
 export function sortRecordByStartTime(records) {
   records.sort((a, b) => b.startTime - a.startTime)
 }
+
+export function syncData(data) {
+  localStorage.setItem('yihsiu-punch-clock', data)
+}
