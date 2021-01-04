@@ -2,7 +2,7 @@
 
 Time tracker that helps you tracking work hours.
 
-http://yihsiu.io/punch-clock
+https://yihsiu806.github.io/punch-clock/
 
 ![](https://github.com/yihsiu806/punch-clock/blob/master/public/punch-clock.png?raw=true)
 
