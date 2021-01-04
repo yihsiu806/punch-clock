@@ -32,6 +32,7 @@ jobs:
           npm run build
 
       - name: checkout to branch gh-pages
+        uses: actions/checkout@v2
         with:
           ref: gh-pages
           
