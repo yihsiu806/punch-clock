@@ -42,18 +42,8 @@ jobs:
         with:
           ref: gh-pages
 
-      - name: Download
+      - name: Download distribution
         uses: actions/download-artifact@v2
-
-      - name: test
-        run: |
-          ls -la > ls.out
-
-      - name: test
-        uses: actions/upload-artifact@v2
-        with:
-          name: ls.out
-          path: ls.out
           
       - name: commit and push
         run: |
