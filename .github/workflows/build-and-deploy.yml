@@ -31,10 +31,21 @@ jobs:
           npm install
           npm run build
 
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
       - name: checkout to branch gh-pages
         uses: actions/checkout@v2
         with:
           ref: gh-pages
+
+      - name: Download dist
+        uses: actions/download-artifact@v2
+        with:
+          name: dist
           
       - name: commit and push
         run: |
@@ -45,9 +56,5 @@ jobs:
           git commit -m "Update distribution"
           git push
 
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: dist
+      
         
