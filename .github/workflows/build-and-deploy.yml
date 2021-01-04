@@ -31,9 +31,11 @@ jobs:
           npm install
           npm run build
 
-      - name: commit and push
-        uses: actions/checkout@v2
+      - name: checkout to branch gh-pages
+        with:
           ref: gh-pages
+          
+      - name: commit and push
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
